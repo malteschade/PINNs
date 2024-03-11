@@ -1,0 +1,2 @@
+This file should include metadata that describes the data generation process and the choosen parameter settings.
+Preferably the code used to generate the data should be included.

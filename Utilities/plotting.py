@@ -1,78 +1,165 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Oct  9 20:11:57 2017
 
-@author: mraissi
+"""
+{Function module for plotting functions.}
+
+{
+    MIT License
+
+    Copyright (c) 2018 maziarraissi
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+}
 """
 
+# -------- IMPORTS --------
+# Other modules
 import numpy as np
-import matplotlib as mpl
-#mpl.use('pgf')
-
-def figsize(scale, nplots = 1):
-    fig_width_pt = 390.0                          # Get this from LaTeX using \the\textwidth
-    inches_per_pt = 1.0/72.27                       # Convert pt to inch
-    golden_mean = (np.sqrt(5.0)-1.0)/2.0            # Aesthetic ratio (you could change this)
-    fig_width = fig_width_pt*inches_per_pt*scale    # width in inches
-    fig_height = nplots*fig_width*golden_mean              # height in inches
-    fig_size = [fig_width,fig_height]
-    return fig_size
-
-pgf_with_latex = {                      # setup matplotlib to use latex for output
-    "pgf.texsystem": "pdflatex",        # change this if using xetex or lautex
-    "text.usetex": True,                # use LaTeX to write all text
-    "font.family": "serif",
-    "font.serif": [],                   # blank entries should cause plots to inherit fonts from the document
-    "font.sans-serif": [],
-    "font.monospace": [],
-    "axes.labelsize": 10,               # LaTeX default is 10pt font.
-    "font.size": 10,
-    "legend.fontsize": 8,               # Make the legend/label fonts a little smaller
-    "xtick.labelsize": 8,
-    "ytick.labelsize": 8,
-    "figure.figsize": figsize(1.0),     # default fig size of 0.9 textwidth
-    "pgf.preamble": [
-        r"\usepackage[utf8x]{inputenc}",    # use utf8 fonts becasue your computer can handle it :)
-        r"\usepackage[T1]{fontenc}",        # plots will be generated using this preamble
-        ]
-    }
-mpl.rcParams.update(pgf_with_latex)
-
+import seaborn as sns
 import matplotlib.pyplot as plt
 
-# I make my own newfig and savefig functions
-def newfig(width, nplots = 1):
-    fig = plt.figure(figsize=figsize(width, nplots))
-    ax = fig.add_subplot(111)
-    return fig, ax
+# -------- FUNCTIONS --------
+def _imshow_subplot(ax, data, title, x_label, y_label, label, x_ticks, y_ticks,
+                    x_tick_label, y_tick_label, cmap='viridis', vmin=-1, vmax=1):
+    # Plot the data
+    sns.heatmap(data, ax=ax, cbar=True, cmap=cmap, label=label,
+                cbar_kws={'label': 'Magnitude'}, vmin=vmin, vmax=vmax)
 
-def savefig(filename, crop = True):
-    if crop == True:
-#        plt.savefig('{}.pgf'.format(filename), bbox_inches='tight', pad_inches=0)
-        plt.savefig('{}.pdf'.format(filename), bbox_inches='tight', pad_inches=0)
-        plt.savefig('{}.eps'.format(filename), bbox_inches='tight', pad_inches=0)
-    else:
-#        plt.savefig('{}.pgf'.format(filename))
-        plt.savefig('{}.pdf'.format(filename))
-        plt.savefig('{}.eps'.format(filename))
+    # Set the plot labels
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_xticks(x_ticks)
+    ax.set_yticks(y_ticks)
+    ax.set_xticklabels(x_tick_label)
+    ax.set_yticklabels(y_tick_label)
 
-## Simple plot
-#fig, ax  = newfig(1.0)
-#
-#def ema(y, a):
-#    s = []
-#    s.append(y[0])
-#    for t in range(1, len(y)):
-#        s.append(a * y[t] + (1-a) * s[t-1])
-#    return np.array(s)
-#    
-#y = [0]*200
-#y.extend([20]*(1000-len(y)))
-#s = ema(y, 0.01)
-#
-#ax.plot(s)
-#ax.set_xlabel('X Label')
-#ax.set_ylabel('EMA')
-#
-#savefig('ema')
+def _lineplot_subplot(ax, x_data, title, x_label, y_label, label,
+                      x_ticks=None, y_ticks=None, x_tick_label=None,
+                      y_tick_label=None, y_scale='linear'):
+    # Plot the data
+    sns.lineplot(data=x_data, ax=ax, color="tab:orange", label=label)
+
+    # Set the plot labels
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    if x_ticks is not None:
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels(x_tick_label)
+    if y_ticks is not None:
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_tick_label)
+
+    # Set the y-scale
+    ax.set_yscale(y_scale)
+
+def plot_solution(u_pred, exact, path, style='whitegrid', figsize=(15, 5), dpi=300):
+    """Plotting function that compares the solution of the PINN with the exact one.
+
+    Args:
+        u_pred (np.ndarray): Predicted velocities.
+        exact (np.ndarray): Exact velocities.
+        path (str): Save path.
+        style (str, optional): Plotting style. Defaults to 'whitegrid'.
+        figsize (tuple, optional): Figure dimensions. Defaults to (15, 5).
+        dpi (int, optional): Output DPI. Defaults to 300.
+    """
+
+    # Calculate the plotting data
+    pred = u_pred.reshape(exact.shape).T
+    exact = exact.T
+    error = np.abs(np.abs(exact - pred))
+
+    # Configure the plot style
+    sns.set_theme(style=style)
+
+    # Setup for 2x2 grid plots
+    _, axs = plt.subplots(2, 2, figsize=figsize)
+
+    # Plot the predicted solution
+    _imshow_subplot(axs[0, 0], pred, 'Burgers Equation - Prediction',
+                    'Time [s]', 'x', 'Prediction',
+                    [0, 19, 39, 59, 79, 99], [0, 63, 127, 191, 255],
+                    [0, 0.2, 0.4, 0.6, 0.8, 1], [1, 0.5, 0, -0.5, -1])
+
+    # Plot the exact solution
+    _imshow_subplot(axs[0, 1], exact, 'Burgers Equation - Exact',
+                    'Time [s]', 'x', 'Exact',
+                    [0, 19, 39, 59, 79, 99], [0, 63, 127, 191, 255],
+                    [0, 0.2, 0.4, 0.6, 0.8, 1], [1, 0.5, 0, -0.5, -1])
+
+    # Plot the error
+    _imshow_subplot(axs[1, 0], error, 'Burgers Equation - Error',
+                    'Time [s]', 'x', 'Error',
+                    [0, 19, 39, 59, 79, 99], [0, 63, 127, 191, 255],
+                    [0, 0.2, 0.4, 0.6, 0.8, 1], [1, 0.5, 0, -0.5, -1])
+
+    # Plot the mean error
+    _lineplot_subplot(axs[1, 1], error.mean(axis=0), 'Mean Error',
+                      'Time [s]', 'Error', 'Mean Error',
+                      x_ticks=[0, 19, 39, 59, 79, 99], x_tick_label=[0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    # Finalize layout
+    sns.despine()
+    plt.tight_layout()
+    plt.legend()
+
+    # Export the plot
+    plt.savefig(path, dpi=dpi)
+    plt.close()
+
+def plot_losses(model, path, style='whitegrid', figsize=(15, 5), dpi=300):
+    """Plotting function that visualizes the data, physics, and total losses.
+
+    Args:
+        model (PhysicsInformedNN): The trained model.
+        path (str): Save path.
+        style (str, optional): Plotting style. Defaults to 'whitegrid'.
+        figsize (tuple, optional): Figure dimensions. Defaults to (15, 5).
+        dpi (int, optional): Output DPI. Defaults to 300.
+    """
+
+    # Configure the plot style
+    sns.set_theme(style=style)
+
+    # Setup for 1x3 grid plots
+    _, axs = plt.subplots(1, 3, figsize=figsize)
+
+    # Plot the data losses
+    _lineplot_subplot(axs[0], model.data_loss_hist, 'Burgers Equation - Data Loss',
+                      'Iteration', 'Error', 'Data Loss', y_scale='log')
+
+    # Plot the physics losses
+    _lineplot_subplot(axs[1], model.physics_loss_hist, 'Burgers Equation - Physics Loss',
+                      'Iteration', 'Error', 'Physics Loss', y_scale='log')
+
+    # Plot the total losses
+    _lineplot_subplot(axs[2], model.loss_hist, 'Burgers Equation - Total Loss',
+                      'Iteration', 'Error', 'Total Loss', y_scale='log')
+
+    # Finalize layout
+    sns.despine()
+    plt.tight_layout()
+    plt.legend()
+
+    # Export the plot
+    plt.savefig(path, dpi=dpi)
+    plt.close()
