@@ -191,8 +191,8 @@ class PhysicsInformedNN:
 
             # Print the loss at each 1000th iteration
             if it % 1000 == 0:
-                print(f'''Iter: {it}, Data Loss: {data_loss.numpy():.5e}, \\
-                    Physics Loss: {physics_loss.numpy():.5e}, Overall Loss: {loss.numpy():.5e}''')
+                print(f"Iter: {it}, Data Loss: {data_loss.numpy():.5e}, " \
+                      f"Physics Loss: {physics_loss.numpy():.5e}, Overall Loss: {loss.numpy():.5e}")
 
     # Prediction method
     def predict(self, x_star):

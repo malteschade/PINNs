@@ -4,14 +4,14 @@
     "solution_plot_path": "figures/solution.png",
     "seed": 0,
     "v": 0.0031830988618379,
-    "n_u": 1000,
-    "n_f": 2000,
     "noise": 0.0,
     "min_x": -1,
     "max_x": 1,
     "min_t": 0,
     "max_t": 0.99,
+    "n_u": 1000,
+    "n_f": 2000,
     "layers": [2, 20, 20, 20, 1],
-    "n_iter": 100,
-    "learning_rate": 0.01
+    "n_iter": 30000,
+    "learning_rate": 0.001
 }
